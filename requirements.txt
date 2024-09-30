@@ -1,0 +1,5 @@
+python-dotenv
+requests
+bs4
+googlemaps
+selenium
