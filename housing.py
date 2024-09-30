@@ -15,7 +15,7 @@ from concurrent import futures
 import logging
 from pathlib import Path
 import traceback
-from typing import Optional, Union
+from typing import List, Literal, Optional, Union
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 import requests
@@ -297,23 +297,29 @@ class GoogleMap:
         self.url = None
         self._rating = [None, None]
 
-    def get_place_result(self):
+    def get_place_result(self, fields: Optional[List[Literal['opening_hours', 'business_status', 'photos', 'price_level', 'plus_code', 'permanently_closed', 'icon']]] = None):
+        fields = [
+            "types",
+            "place_id",
+            "formatted_address",
+            "name",
+            "geometry",
+            "rating",
+            "user_ratings_total",
+            *(fields or [])
+        ]
         # Replace with your actual API key
         api_key = os.getenv("GOOGLE_MAPS_API_KEY")
         # Create a Google Maps client
         gmaps = googlemaps.Client(key=api_key)
         # Search for the place in the Bay Area
+        query = self.query
+        if "apartment" not in self.query.lower():
+            query + " apartment in the bay area"
         results = gmaps.find_place(
-            input=self.query,
+            input=query,
             input_type="textquery",
-            fields=[
-                "place_id",
-                "formatted_address",
-                "name",
-                "geometry",
-                "rating",
-                "user_ratings_total",
-            ],
+            fields=fields,
             location_bias="circle:20000@37.7959572,-122.3944423",
         )
         return results
@@ -352,7 +358,8 @@ def crawl(url):
         )
         return post
 
-    posts = Apartment(url).get_list()
+    # posts = Apartment(url).get_list()
+    posts = Apartment(url).get_page(1)[:3]
     # get yelp reviews
     # yelp_pool = futures.ThreadPoolExecutor(1)
     # yelp_futs = [yelp_pool.submit(_get_yelp_result, p) for p in posts]
