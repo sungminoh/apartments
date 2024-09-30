@@ -10,6 +10,7 @@
 
 """
 import inspect
+import urllib.parse
 from functools import lru_cache
 from concurrent import futures
 import logging
@@ -32,6 +33,10 @@ from selenium import webdriver
 from dataclasses import dataclass
 import dotenv
 import colorlog
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
 
 dotenv.load_dotenv()
@@ -118,6 +123,13 @@ def get_headers(url):
             ret[key.lower()] = value
     return ret
 
+
+def get_seleinum_driver():
+    # Set up the Chrome driver and options
+    options = Options()
+    options.add_argument('--headless')  # Run headless if you don't need a browser UI
+    options.add_argument('--disable-gpu')
+    driver = webdriver.Chrome(options=options)
 
 class Apartment:
     HEADER_BASE = {
@@ -358,8 +370,14 @@ def crawl(url):
         )
         return post
 
-    # posts = Apartment(url).get_list()
-    posts = Apartment(url).get_page(1)[:3]
+    posts = Apartment(url).get_list()
+    for post in posts:
+        post.yelp_link = "https://www.yelp.com/search?" + urllib.parse.urlencode(
+            {
+                "find_desc": post.title,
+                "find_loc": "San Francisco Bay Area, CA, United States",
+            }
+        )
     # get yelp reviews
     # yelp_pool = futures.ThreadPoolExecutor(1)
     # yelp_futs = [yelp_pool.submit(_get_yelp_result, p) for p in posts]
