@@ -304,8 +304,9 @@ class Yelp:
 
 
 class GoogleMap:
-    def __init__(self, query):
+    def __init__(self, query, address=None):
         self.query = query
+        self.address = address
         self.url = None
         self._rating = [None, None]
 
@@ -326,8 +327,9 @@ class GoogleMap:
         gmaps = googlemaps.Client(key=api_key)
         # Search for the place in the Bay Area
         query = self.query
-        if "apartment" not in self.query.lower():
-            query + " apartment in the bay area"
+        if self.address:    
+            query += ', ' + self.address
+        logger.debug(f"Searching for {query}")
         results = gmaps.find_place(
             input=query,
             input_type="textquery",
